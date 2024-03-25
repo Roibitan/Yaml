@@ -1,0 +1,164 @@
+trigger: none
+
+parameters:
+  - name: Version_Number
+    displayName: Version Number
+    type: string
+    default: "v151"
+    values:
+    - v151
+  - name: Deploy_To_Production
+    displayName: Deploy To
+    type: string
+    default: "Deploy_To_Production_151"
+    values:
+    - Deploy_To_Production_151
+    - Deploy_To_Mizdamnot\Sprint_150
+  # - name: Deploy_To_Production
+  #   displayName: Deploy To Production ?
+  #   type: boolean
+  #   default: true
+  #   values:
+  #     - true
+  #     - false
+  - name: Application_Pool_name_1
+    displayName: Recycle Application Pool
+    type: string
+    default: "None"
+    values:
+    - INGAAppPool
+    - TGWAppPool
+    - NPAppPool
+    - NpIsraelAppPool
+    - CnpWsAppPool
+    - CnpClientAppPool
+    - XXXXXNpAppPool
+    - XXXXXNpWsAppPool
+    - RetrievEntityDetailsAppPool
+    - XXXXXCourierAppPool
+    - DydoSignalRProdAppPool
+    - DydoSignAppPool
+    - IipAPIApppool
+    - IipApppool
+    - Michal_Test
+    - None
+  - name: Application_Pool_name_2
+    displayName: Recycle Application Pool
+    type: string
+    default: "None"
+    values:
+    - INGAAppPool
+    - TGWAppPool
+    - NPAppPool
+    - NpIsraelAppPool
+    - CnpWsAppPool
+    - CnpClientAppPool
+    - XXXXXNpAppPool
+    - XXXXXNpWsAppPool
+    - RetrievEntityDetailsAppPool
+    - XXXXXCourierAppPool
+    - DydoSignalRProdAppPool
+    - DydoSignAppPool
+    - IipAPIApppool
+    - IipApppool
+    - Michal_Test
+    - None
+  - name: Service_Group_Restart
+    displayName: Restart Windows Service
+    type: string
+    default: "None"
+    values:
+    - NP
+    - online
+    - Main
+    - Batches
+    - Hot_Sync
+    - SapConnector
+    - None
+
+resources:
+  repositories:
+  - repository: XXXXX.Eai.Infra
+    type: git
+    name: XXXXX.Eai.Infra
+
+stages:
+- stage: Copy_Dll
+  displayName: 'Copy Dlls to remote machines'
+  jobs:
+  - job: Copy_Dll_Trgts
+    displayName: 'Copy Dll Trgts'
+    pool:
+      name: CMPool
+    steps:        
+      - task: PowerShell@2
+        displayName: Script "Copy_Dll"
+        inputs:
+          targetType: 'inline'
+          script: |
+            .\DevOps\Gac_Install\QA\Copy_Dll.ps1 ${{parameters.Version_Number}} $(Build.RequestedForEmail) $(build.sourcesdirectory)
+          workingDirectory: $(build.sourcesdirectory)
+
+- stage: Gac_install
+  displayName: 'Gac install'
+  jobs:
+  - job: Remote_Gac_install
+    displayName: 'Remote Gac install'
+    pool:
+      name: CMPool
+    steps:
+      - task: PowerShell@2
+        displayName: Script "Gac_install"
+        inputs:
+          targetType: 'inline'
+          script: |
+            .\DevOps\Gac_Install\QA\Gac_install.ps1 $(build.sourcesdirectory) 
+          workingDirectory: $(build.sourcesdirectory)
+
+- stage: Application_Pool_Restart
+  displayName: 'Application Pool Restart'
+  jobs:
+  - job: Remote_Application_Pool_Restart
+    displayName: 'Remote Application Pool Restart'
+    pool:
+      name: CMPool
+    steps:
+      - task: PowerShell@2
+        displayName: Script "Application_Pool_Restart"
+        inputs:
+          targetType: 'inline'
+          script: |
+            .\DevOps\Gac_Install\QA\Application_Pool_Restart.ps1 $(build.sourcesdirectory) ${{parameters.Application_Pool_name_1}} ${{parameters.Application_Pool_name_2}}
+          workingDirectory: $(build.sourcesdirectory)
+
+- stage: Services_Restart
+  displayName: 'Services Restart'
+  jobs:
+  - job: Services_Restart
+    displayName: 'Services Restart on remote servers'
+    pool:
+      name: CMPool
+    steps:
+      - task: PowerShell@2
+        displayName: Script "Service_Group_Restart"
+        inputs:
+          targetType: 'inline'
+          script: |
+            .\DevOps\Gac_Install\QA\Service_Group_Restart.ps1 $(build.sourcesdirectory) ${{parameters.Service_Group_Restart}}
+          workingDirectory: $(build.sourcesdirectory)
+
+- stage: Backup
+  displayName: 'Backup'
+  jobs:
+  - job: Copy_Dlls_to_Backup
+    displayName: 'Copy Dlls to Backup'
+    pool:
+      name: CMPool
+    steps:
+      - task: PowerShell@2
+        displayName: Script "Copy To Backup"
+        inputs:
+          targetType: 'inline'
+          script: |
+            .\DevOps\Gac_Install\QA\Copy_To_Backup.ps1 $(build.sourcesdirectory) ${{parameters.Version_Number}} $(Build.RequestedForEmail) ${{parameters.Deploy_To_Production}}
+          workingDirectory: $(build.sourcesdirectory)
