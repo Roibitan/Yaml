@@ -1,5 +1,8 @@
 trigger: none
 
+name: Install
+appendCommitMessageToRunName: false
+
 parameters:
   - name: Version_Number
     displayName: Version Number
