@@ -1,0 +1,106 @@
+trigger:
+  branches:
+    include:
+      - none
+
+parameters:
+  - name: Version_Number
+    displayName: Version Number
+    type: string
+    default: "152"
+    values:
+    - 152
+    - 946
+  - name: bb_name
+    displayName: bb name
+    type: string
+    default: "XXXXXX"
+    values:
+    - XXXXXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXXXXXXXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXXXXXXXXXXXXXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXXXXXXXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXXXXXXXXXXXXXX
+    - XXXXXX
+  - name: topic
+    displayName: please insert topic
+    type: string
+    default: ''
+  - name: File_Name
+    displayName: Please Insert File Name To Refresh
+    type: string
+    default: ''
+
+pool:
+  name: XXXXXXXXXX
+  demands:
+  - Agent.Name -equals XXXXXXXXXX
+
+variables:
+  greeting: 'Hello'
+  name: 'World'
+
+resources:
+  repositories:
+  - repository: XXXXXXXXXX_XXX
+    type: git
+    name: XXXXXXXXXX_XXX
+
+stages:
+- stage: Refrase
+  displayName: 'Refrase'
+  jobs:
+  - job: tsget_file
+    displayName: 'tsget_file'
+    pool:
+      name: XXXXXXXXXX
+    steps:  
+      - task: Bash@3
+        displayName: Check if parameter ends with .rql
+        inputs:
+          targetType: 'inline'
+          script: |
+            if [[ "${{ parameters.bb_name }}" == "XXXXXX" ]]; then
+              if [[ "${{ parameters.File_Name }}" == *".rql" ]]; then
+                echo "Parameter ends with .rql. Cancelling the run."
+                exit 1
+              else
+                echo "Parameter does not end with .rql. Continuing with the run."
+              fi
+            else
+              echo "Parameter does not end with .rql. countinue."  
+            fi
+      - task: Bash@3
+        displayName: Script "tsget_files_cli"
+        inputs:
+          targetType: 'inline'
+          script: |
+            log=/tmp/log/log$$
+            sudo -i -u XX_XXXXXX /XXXXXX/XXX/XXXXX/XX_XXXXXX/rembuild/tsget_files_cli ${{parameters.File_Name}} ${{parameters.Version_Number}} ${{parameters.topic}} ${{parameters.bb_name}} | tee $log
+            vol=$(grep -c "All files up to date." $log)
+            if [ $vol == "4" ] 
+            then
+              echo "All files up to date. please verify that you have check in the file ${{parameters.File_Name}} "
+              exit 1
+            fi   
+          failOnStderr: true
+          workingDirectory: /XXXXXX/XXX/XXXXX/XX_XXXXXX/rembuild
+      - task: Bash@3
+        displayName: Script "build_file"
+        inputs:
+          targetType: 'inline'
+          script: |
+            sudo -i -u XX_XXXXXX /XXXXXX/XXX/XXXXX/XX_XXXXXX/rembuild/build_file ${{parameters.File_Name}} ${{parameters.Version_Number}} ${{parameters.topic}} ${{parameters.bb_name}}
+          failOnStderr: true
+          workingDirectory: /XXXXXX/XXX/XXXXX/XX_XXXXXX/rembuild

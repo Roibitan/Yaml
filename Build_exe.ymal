@@ -1,0 +1,91 @@
+trigger:
+  branches:
+    include:
+      - none
+
+parameters:
+  - name: Version_Number
+    displayName: Version Number
+    type: string
+    default: "XXX"
+    values:
+    - XXX
+    - XXX
+  - name: bb_name
+    displayName: bb name
+    type: string
+    default: "XXXXXX"
+    values:
+    - XXXXXXXXX
+    - XXX
+    - XXX
+    - XXXXXX
+    - XXXXXXXXX
+    - XXX
+    - XXXXXX
+    - XXXXXX
+    - XXXXXXXXX
+    - XXX
+    - XXX
+    - XXXXXX
+    - XXXXXXXXX
+    - XXX
+    - XXX
+    - XXX
+    - XXXXXX
+  - name: topic
+    displayName: please insert topic
+    type: string
+    default: ''
+  - name: File_Name
+    displayName: Please Insert EXE File Name To Build
+    type: string
+    default: ''
+
+pool:
+  name: XXXXXXXXXXXX
+  demands:
+  - Agent.Name -equals XXXXXXXXXXXX
+
+variables:
+  greeting: 'Hello'
+  name: 'World'
+
+resources:
+  repositories:
+  - repository: XXXXXXXXXXXX
+    type: git
+    name: XXXXXXXXXXXX
+
+stages:
+- stage: Build_EXE
+  displayName: 'Build EXE'
+  jobs:
+  - job: Build
+    displayName: 'Build EXE'
+    pool:
+      name: XXXXXXXXXXXX
+    steps:  
+      - task: Bash@3
+        displayName: Check if parameter ends with .rql
+        inputs:
+          targetType: 'inline'
+          script: |
+            if [[ "${{ parameters.bb_name }}" == "clcgdd" ]]; then
+              if [[ "${{ parameters.File_Name }}" == *".rql" ]]; then
+                echo "Parameter ends with .rql. Cancelling the run."
+                exit 1
+              else
+                echo "Parameter does not end with .rql. Continuing with the run."
+              fi
+            else
+              echo "Parameter does not end with .rql. countinue."  
+            fi
+      - task: Bash@3
+        displayName: Script "runmake_tcsh"
+        inputs:
+          targetType: 'inline'
+          script: |
+            sudo -i -u XXX_XXX /XXX/XXX/XXXXXX/XXX_XXX/rembuild/runmake_tcsh ${{parameters.Version_Number}} ${{parameters.bb_name}} ${{parameters.topic}} ${{parameters.File_Name}}
+          failOnStderr: true
+          workingDirectory: /XXX/XXX/XXXXXX/XXX_XXX/rembuild   

@@ -1,0 +1,36 @@
+trigger:
+  branches:
+    include:
+      - none
+
+pool:
+  name: XXXXXXX
+  demands:
+  - Agent.Name -equals XXXXXXXTFS2Ag1
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+resources:
+  repositories:
+  - repository: Roi_Test
+    type: git
+    name: Roi_Test
+
+
+
+jobs:
+- job: RunOnSpecificAgent
+  displayName: 'Run on Specific Agent'
+  pool:
+    name: XXXXXXX
+    demands:
+    - Agent.Name -equals XXXXXXXTFS2Ag1
+  steps:
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "Hello, world!"

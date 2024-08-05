@@ -1,22 +1,22 @@
 trigger: none
 
-name: Install
+name: Gac Install QA
 appendCommitMessageToRunName: false
 
 parameters:
   - name: Version_Number
     displayName: Version Number
     type: string
-    default: "v151"
+    default: "v154"
     values:
-    - v151
+    - v154
   - name: Deploy_To_Production
     displayName: Deploy To
     type: string
-    default: "Deploy_To_Production_151"
+    default: "Deploy_To_Production_v154"
     values:
-    - Deploy_To_Production_151
-    - Deploy_To_Mizdamnot\Sprint_150
+    - Deploy_To_Production_v154
+   # - Deploy_To_Mizdamnot\Sprint_151
   # - name: Deploy_To_Production
   #   displayName: Deploy To Production ?
   #   type: boolean
@@ -29,61 +29,62 @@ parameters:
     type: string
     default: "None"
     values:
-    - INGAAppPool
-    - TGWAppPool
-    - NPAppPool
-    - NpIsraelAppPool
-    - CnpWsAppPool
-    - CnpClientAppPool
-    - XXXXXNpAppPool
-    - XXXXXNpWsAppPool
-    - RetrievEntityDetailsAppPool
-    - XXXXXCourierAppPool
-    - DydoSignalRProdAppPool
-    - DydoSignAppPool
-    - IipAPIApppool
-    - IipApppool
-    - Michal_Test
+    - XXXXXXX
+    - XXXXXXXX
+    - XXXXXXXXX
+    - XXXXXXX
+    - XXXXXXXXXXXXXX
+    - XXXXXXXXXX
+    - XXXXXXX_XXXXXXX
+    - XXXXXXXXXXXXXXXXXXXXX
+    - XXXXXXX_XX
+    - XXXXXXX
+    - XXXXXXXX
+    - XXXXXXXXXXXX
+    - XXXXXXXX
+    - XXXXXXXXXXXXXX
+    - XXXXXXX
     - None
   - name: Application_Pool_name_2
     displayName: Recycle Application Pool
     type: string
     default: "None"
     values:
-    - INGAAppPool
-    - TGWAppPool
-    - NPAppPool
-    - NpIsraelAppPool
-    - CnpWsAppPool
-    - CnpClientAppPool
-    - XXXXXNpAppPool
-    - XXXXXNpWsAppPool
-    - RetrievEntityDetailsAppPool
-    - XXXXXCourierAppPool
-    - DydoSignalRProdAppPool
-    - DydoSignAppPool
-    - IipAPIApppool
-    - IipApppool
-    - Michal_Test
+    - XXXXXXX
+    - XXXXXXXX
+    - XXXXXXXXX
+    - XXXXXXX
+    - XXXXXXXXXXXXXX
+    - XXXXXXXXXX
+    - XXXXXXX_XXXXXXX
+    - XXXXXXXXXXXXXXXXXXXXX
+    - XXXXXXX_XX
+    - XXXXXXX
+    - XXXXXXXX
+    - XXXXXXXXXXXX
+    - XXXXXXXX
+    - XXXXXXXXXXXXXX
+    - XXXXXXX
     - None
   - name: Service_Group_Restart
     displayName: Restart Windows Service
     type: string
     default: "None"
     values:
-    - NP
-    - online
-    - Main
-    - Batches
-    - Hot_Sync
-    - SapConnector
+    - XXXXXXX
+    - XXXXXXXXX
+    - XXXXXXXX
+    - XXXXXXX
+    - XXXXXXX_XXXXXXX
+    - XXXXXXXXXXXXXX
+    - XXXXXXXXXXXXXX
     - None
 
 resources:
   repositories:
-  - repository: XXXXX.Eai.Infra
+  - repository: XXXXXXX.XXXXXXX.XXXXXXX
     type: git
-    name: XXXXX.Eai.Infra
+    name: XXXXXXX.XXXXXXX.XXXXXXX
 
 stages:
 - stage: Copy_Dll
@@ -92,7 +93,7 @@ stages:
   - job: Copy_Dll_Trgts
     displayName: 'Copy Dll Trgts'
     pool:
-      name: CMPool
+      name: XXXXXXX
     steps:        
       - task: PowerShell@2
         displayName: Script "Copy_Dll"
@@ -108,8 +109,9 @@ stages:
   - job: Remote_Gac_install
     displayName: 'Remote Gac install'
     pool:
-      name: CMPool
+      name: XXXXXXX
     steps:
+      - checkout: none
       - task: PowerShell@2
         displayName: Script "Gac_install"
         inputs:
@@ -120,12 +122,14 @@ stages:
 
 - stage: Application_Pool_Restart
   displayName: 'Application Pool Restart'
+  condition: ne('${{ parameters.Application_Pool_name_1 }}', 'None')
   jobs:
   - job: Remote_Application_Pool_Restart
     displayName: 'Remote Application Pool Restart'
     pool:
-      name: CMPool
+      name: XXXXXXX
     steps:
+      - checkout: none
       - task: PowerShell@2
         displayName: Script "Application_Pool_Restart"
         inputs:
@@ -136,28 +140,32 @@ stages:
 
 - stage: Services_Restart
   displayName: 'Services Restart'
+  condition: ne('${{ parameters.Service_Group_Restart }}', 'None')
   jobs:
   - job: Services_Restart
     displayName: 'Services Restart on remote servers'
     pool:
-      name: CMPool
+      name: XXXXXXX
     steps:
+      - checkout: none
       - task: PowerShell@2
         displayName: Script "Service_Group_Restart"
         inputs:
           targetType: 'inline'
           script: |
-            .\DevOps\Gac_Install\QA\Service_Group_Restart.ps1 $(build.sourcesdirectory) ${{parameters.Service_Group_Restart}}
+              .\DevOps\Gac_Install\QA\Service_Group_Restart.ps1 $(build.sourcesdirectory) ${{parameters.Service_Group_Restart}}
           workingDirectory: $(build.sourcesdirectory)
 
 - stage: Backup
   displayName: 'Backup'
+  condition: ne('${{ parameters.Version_Number }}', 'None')
   jobs:
   - job: Copy_Dlls_to_Backup
     displayName: 'Copy Dlls to Backup'
     pool:
-      name: CMPool
+      name: XXXXXXX
     steps:
+      - checkout: none
       - task: PowerShell@2
         displayName: Script "Copy To Backup"
         inputs:

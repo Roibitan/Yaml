@@ -1,0 +1,77 @@
+trigger:
+  branches:
+    include:
+      - none
+
+parameters:
+  - name: Version_Number
+    displayName: Version Number
+    type: string
+    default: "152"
+    values:
+    - 152
+    - 946
+
+pool:
+  name: XXXXXXXXXXX
+  demands:
+  - Agent.Name -equals XXXXXXXXXXXXXX
+
+variables:
+  greeting: 'Hello'
+  name: 'World'
+
+resources:
+  repositories:
+  - repository: XXXXXXX_XXXXXXX
+    type: git
+    name: XXXXXXX_XXXXXXX
+
+stages:
+- stage: Refrase
+  displayName: 'Refrase'
+  jobs:
+  - job: tsget_file
+    displayName: 'tsget_file'
+    pool:
+      name: XXXXXXXXXXX
+    steps:  
+      - task: Bash@3
+        displayName: Script "tsget_files_rbc"
+        inputs:
+          targetType: 'inline'
+          script: |
+            log=/tmp/log/log$$
+            sudo -i -u XX_XXXXXXX /XXXXXX/XXX/XXXXXX/XX_XXXXXXX/rembuild/tsget_files_cli " " ${{parameters.Version_Number}} rbc XXXmafmd | tee $log
+            vol=$(grep -c "All files up to date." $log)
+            if [ $vol == "4" ] 
+            then
+              echo "All files up to date. please verify that you have check in the file"
+              exit 1
+            fi
+          failOnStderr: true
+          workingDirectory: /XXXXXX/XXX/XXXXXX/XX_XXXXXXX/rembuild
+      - task: Bash@3
+        displayName: Script "tsget_files_pub"
+        inputs:
+          targetType: 'inline'
+          script: |
+            log=/tmp/log/log$$
+            sudo -i -u XX_XXXXXXX /XXXXXX/XXX/XXXXXX/XX_XXXXXXX/rembuild/tsget_files_cli " " ${{parameters.Version_Number}} pub XXXmafmd | tee $log
+            vol=$(grep -c "All files up to date." $log)
+            if [ $vol == "2" ] 
+            then
+              echo "All files up to date. please verify that you have check in the file"
+              exit 1
+            fi   
+          failOnStderr: true
+          workingDirectory: /XXXXXX/XXX/XXXXXX/XX_XXXXXXX/rembuild
+      - task: Bash@3
+        displayName: Script "build_Maf"
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "echo m001 build_Maf ${{parameters.Version_Number}}"
+            sudo -i -u XX_XXXXXXX /XXXXXX/XXX/XXXXXX/XX_XXXXXXX/rembuild/build_Maf ${{parameters.Version_Number}}
+          failOnStderr: true
+          workingDirectory: /XXXXXX/XXX/XXXXXX/XX_XXXXXXX/rembuild
